@@ -1,0 +1,14 @@
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB ($INFLUXDB_DB)
+    type: influxdb
+    access: proxy
+    database: $INFLUXDB_DB
+    # HTTP used here as TLS encryption is terminated on the reverse proxy (Traefik)
+    url: http://$INFLUXDB_DOCKER_CONTAINER_NAME:$INFLUXDB_PORT
+    user: $INFLUXDB_ADMIN_USER
+    secureJsonData:
+      password: $INFLUXDB_ADMIN_PASSWORD
+    isDefault: true
+    editable: true

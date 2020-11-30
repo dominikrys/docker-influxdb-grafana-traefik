@@ -1,0 +1,149 @@
+version: "3.8"
+
+x-shared-influxdb-variables: &shared-influxdb-variables
+    # InfluxDB will create the specified database and an admin account with the following credentials.
+    # The credentials are set to themselves here to print warnings if not provided.
+    # More info: https://github.com/influxdata/influxdata-docker/pull/102 
+    INFLUXDB_DB: example_db
+    INFLUXDB_ADMIN_USER: ${INFLUXDB_ADMIN_USER}
+    INFLUXDB_ADMIN_PASSWORD: ${INFLUXDB_ADMIN_PASSWORD}
+
+services:
+    influxdb:
+        container_name: $INFLUXDB_DOCKER_CONTAINER_NAME
+        image: influxdb:1.8.3-alpine
+        volumes:
+            - type: volume
+              source: influxdb-data
+              target: /var/lib/influxdb
+
+            - type: bind
+              source: ./influxdb/docker-entrypoint-initdb.d
+              target: /docker-entrypoint-initdb.d
+              read_only: true
+        env_file:
+            - ./.env
+        environment:
+            # InfluxDB settings: https://docs.influxdata.com/influxdb/v1.8/administration/config/
+            INFLUXDB_META_DIR: /var/lib/influxdb/meta
+
+            INFLUXDB_DATA_DIR: /var/lib/influxdb/data
+            INFLUXDB_DATA_WAL_DIR: /var/lib/influxdb/data
+            INFLUXDB_DATA_MAX_SERIES_PER_DATABASE: 0
+            INFLUXDB_DATA_MAX_VALUES_PER_TAG: 0
+            INFLUXDB_DATA_SERIES_ID_SET_CACHE_SIZE: 100
+            
+            INFLUXDB_HTTP_BIND_ADDRES: :${INFLUXDB_PORT}
+            INFLUXDB_HTTP_ENABLED: "true"
+            INFLUXDB_HTTP_AUTH_ENABLED: "true"
+
+            << : *shared-influxdb-variables
+        networks:
+            - monitoring
+        restart: always
+        labels:
+            - "traefik.http.routers.influxdb-ssl.entryPoints=influxdb-port"
+            - "traefik.http.routers.influxdb-ssl.rule=host(`$MONITORING_DOMAIN`)"
+            - "traefik.http.routers.influxdb-ssl.tls=true"
+            - "traefik.http.routers.influxdb-ssl.tls.certResolver=lets-encrypt-ssl"
+            - "traefik.http.routers.influxdb-ssl.service=influxdb-ssl"
+            - "traefik.http.services.influxdb-ssl.loadBalancer.server.port=$INFLUXDB_PORT"
+
+    grafana:
+        container_name: $GRAFANA_DOCKER_CONTAINER_NAME
+        image: grafana/grafana:7.3.4
+        volumes:
+            - type: volume
+              source: grafana-data
+              target: /var/lib/grafana
+
+            - type: bind
+              source: ./grafana/provisioning
+              target: /etc/grafana/provisioning
+              read_only: true
+        env_file:
+            - ./.env
+        environment:
+            # Grafana settings: https://grafana.com/docs/grafana/latest/administration/configuration/
+            GF_PATHS_DATA: /var/lib/grafana
+            GF_PATHS_PLUGINS: /var/lib/grafana/plugins
+            GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+            
+            GF_SERVER_HTTP_PORT: 3000
+            GF_SERVER_DOMAIN: ${MONITORING_DOMAIN}
+            GF_SERVER_ROOT_URL: https://${MONITORING_DOMAIN}
+
+            GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
+            GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+
+            GF_LOG_MODE: console
+
+            # Variables for setting up the InfluxDB data source
+            << : *shared-influxdb-variables
+        networks:
+            - monitoring
+        restart: always
+        depends_on:
+            - $INFLUXDB_DOCKER_CONTAINER_NAME
+        labels:
+            # Router for redirecting HTTP traffic to the router receiving HTTPS traffic.
+            - "traefik.http.routers.grafana.entryPoints=port80"
+            - "traefik.http.routers.grafana.rule=host(`$MONITORING_DOMAIN`)"
+            - "traefik.http.routers.grafana.middlewares=grafana-redirect"
+            - "traefik.http.middlewares.grafana-redirect.redirectScheme.scheme=https"
+            - "traefik.http.middlewares.grafana-redirect.redirectScheme.permanent=true"
+
+            # SSL endpoint
+            - "traefik.http.routers.grafana-ssl.entryPoints=port443"
+            - "traefik.http.routers.grafana-ssl.rule=host(`$MONITORING_DOMAIN`)"
+            - "traefik.http.routers.grafana-ssl.tls=true"
+            - "traefik.http.routers.grafana-ssl.tls.certResolver=lets-encrypt-ssl"
+            - "traefik.http.routers.grafana-ssl.service=grafana-ssl"
+            - "traefik.http.services.grafana-ssl.loadBalancer.server.port=3000"
+
+    traefik:
+        container_name: traefik
+        image: traefik:v2.3.4
+        volumes:
+            - type: volume
+              source: traefik-data
+              target: /letsencrypt
+
+            # Traefik requires access to the docker socket to get its dynamic configuration: https://docs.traefik.io/providers/docker/#docker-api-access
+            - type: bind
+              source: /var/run/docker.sock
+              target: /var/run/docker.sock
+              read_only: true
+        networks:
+            - monitoring
+        restart: always
+        ports:
+            - "80:80"
+            - "443:443"
+            - "$INFLUXDB_PORT:$INFLUXDB_PORT"
+        command:
+            - "--providers.docker=true"
+
+            - "--entryPoints.port443.address=:443"
+            - "--entryPoints.port80.address=:80"
+            - "--entryPoints.influxdb-port.address=:$INFLUXDB_PORT"
+            
+            - "--certificatesResolvers.lets-encrypt-ssl.acme.tlsChallenge=true"
+            - "--certificatesResolvers.lets-encrypt-ssl.acme.storage=/letsencrypt/acme.json"
+            - "--certificatesresolvers.lets-encrypt-ssl.acme.caServer=${CA_SERVER}"
+            # Let's Encrypt may use this email to contact you about expiring certificates and issues related to your account. More info: https://cert-manager.io/docs/configuration/acme/#creating-a-basic-acme-issuer
+            - "--certificatesResolvers.lets-encrypt-ssl.acme.email=YOUR-EMAIL@website.com"
+
+networks:
+    monitoring:
+        driver: bridge
+
+volumes:
+    influxdb-data:
+        external: false
+
+    grafana-data:
+        external: false
+
+    traefik-data:
+        external: false
