@@ -2,7 +2,7 @@
 
 ![Diagram](docs/diagram.png)
 
-Docker Compose application for deploying [Grafana](https://grafana.com/), [InfluxDB](https://www.influxdata.com/products/influxdb-overview/) and [Traefik](https://containo.us/traefik/) in Docker containers.
+Docker Compose application for deploying [Grafana](https://grafana.com/), [InfluxDB](https://www.influxdata.com/products/influxdb-overview/), and [Traefik](https://containo.us/traefik/) in Docker containers.
 
 The individual components are:
 
@@ -23,10 +23,10 @@ The individual components are:
 Deploy the application:
 
 ```bash
-sudo docker-compose up
+sudo docker-compose up -d
 ```
 
-You can then access Grafana at [monitoring.docker.localhost](http://monitoring.docker.localhost). InfluxDB will be listening to port `8086` by default.
+You can then access Grafana at [monitoring.docker.localhost](http://monitoring.docker.localhost). InfluxDB will be listening on port `8086`.
 
 > Note that when accessing Grafana or InfluxDB that have been deployed locally, your browser and other apps will complain about invalid or self-signed TLS certificates. This is expected as localhost domains don't end with a valid top-level domain, and therefore Traefik won't attempt to request a certificate for them.
 
@@ -54,15 +54,15 @@ sudo docker-compose down
 
 ## Deploying in production
 
-- Change the `MONITORING_DOMAIN` environment variable to the domain where the application will be hosted.
+- Change the `MONITORING_DOMAIN` environment variable in `.env` to the domain where the application will be hosted.
 
-- Set the `certificatesResolvers.lets-encrypt-ssl.acme.email` label in `docker-compose.yml` to a valid email.
+- Set the `certificatesResolvers.lets-encrypt-ssl.acme.email` label in `docker-compose.yml` to a valid email that you wish to receive emails about [certificates issues to](https://cert-manager.io/docs/configuration/acme/#creating-a-basic-acme-issuer).
 
 - Uncomment the appropriate `CA_SERVER` environment variable in `.env` to use [Let's Encrypt's](https://letsencrypt.org/) production API.
 
     > There is a limit of 5 certificates per week from Let's Encrypt's production server as stated [here](https://letsencrypt.org/docs/rate-limits/). For more info on the Let's Encrypt staging environment and Traefik, check the note under this [Traefik docs page](https://docs.traefik.io/v2.0/user-guides/docker-compose/acme-tls/#setup).
 
-- Deploy as you would locally, ideally in a detached state.
+- Deploy as you would locally
 
   ```bash
   sudo docker-compose up -d
