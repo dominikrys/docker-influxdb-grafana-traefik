@@ -26,11 +26,13 @@ Deploy the application:
 sudo docker-compose up -d
 ```
 
-You can then access Grafana at [monitoring.docker.localhost](http://monitoring.docker.localhost). InfluxDB will be listening on port `8086`.
+- You can then access Grafana at [monitoring.docker.localhost](http://monitoring.docker.localhost). InfluxDB will be listening on port `8086`.
+
+- Grafana is accessible from the HTTP and HTTPS ports (`80` and `443` respectively), with redirection from HTTP to HTTPS using Traefik [routers](https://doc.traefik.io/traefik/routing/routers/).
 
 > Note that when accessing Grafana or InfluxDB that have been deployed locally, your browser and other apps will complain about invalid or self-signed TLS certificates. This is expected as localhost domains don't end with a valid top-level domain, and therefore Traefik won't attempt to request a certificate for them.
 
-Stop a running application:
+Stop a running deployment:
 
 ```bash
 sudo docker-compose down
@@ -38,9 +40,7 @@ sudo docker-compose down
 
 ## General info
 
-- Most settings that can be tweaked are provided in `.env`.
-
-  - Make sure to set a secure password for Grafana and InfluxDB! This can also be managed with [Docker secrets](https://docs.docker.com/engine/swarm/secrets/).
+- Most settings that should be tweaked are provided in `.env`.
 
 - After the initial deployment, the containers are set to restart automatically if they stop e.g. on a machine reboot. They can be stopped completely using `docker-compose down`.
 
@@ -48,15 +48,16 @@ sudo docker-compose down
 
 - InfluxDB will run shell scripts in `docker-entrypoint-initdb.d` on startup.
 
-- Traefik has been set up to redirect HTTP to HTTPS using [routers](https://doc.traefik.io/traefik/routing/routers/).
-
-- If testing locally and an application which you want to send data to InfluxDB can't be set to ignore TLS certificates, change the `traefik.http.routers.influxdb-ssl.tls` label to `false` for the InfluxDB container inside `docker-compose.yml`.
+- If you're testing locally, and an application which you want to use to send data to InfluxDB can't be set to ignore TLS certificates, change the `traefik.http.routers.influxdb-ssl.tls` label to `false` for the InfluxDB container inside `docker-compose.yml`.
 
 ## Deploying in production
 
+- Make sure to set a secure password for Grafana and InfluxDB!
+  - For extra security, passwords can be managed with e.g. [Docker secrets](https://docs.docker.com/engine/swarm/secrets/) or [Ansible Vault](https://docs.ansible.com/ansible/latest/user_guide/vault.html).
+
 - Change the `MONITORING_DOMAIN` environment variable in `.env` to the domain where the application will be hosted.
 
-- Set the `certificatesResolvers.lets-encrypt-ssl.acme.email` label in `docker-compose.yml` to a valid email that you wish to receive emails about [certificates issues to](https://cert-manager.io/docs/configuration/acme/#creating-a-basic-acme-issuer).
+- Set the `LETS_ENCRYPT_EMAIL` environment variable in `.env` to a valid email that you wish to receive emails about [certificates issues to](https://cert-manager.io/docs/configuration/acme/#creating-a-basic-acme-issuer).
 
 - Uncomment the appropriate `CA_SERVER` environment variable in `.env` to use [Let's Encrypt's](https://letsencrypt.org/) production API.
 
