@@ -130,7 +130,7 @@ services:
             - "--certificatesresolvers.lets-encrypt-ssl.acme.caServer=${CA_SERVER}"
             # Let's Encrypt may use this email to contact you about expiring certificates and issues related to your account.
             # More info: https://cert-manager.io/docs/configuration/acme/#creating-a-basic-acme-issuer
-            - "--certificatesResolvers.lets-encrypt-ssl.acme.email=YOUR-EMAIL@website.com"
+            - "--certificatesResolvers.lets-encrypt-ssl.acme.email=${LETS_ENCRYPT_EMAIL}"
 
 networks:
     monitoring:
