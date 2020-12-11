@@ -1,8 +1,7 @@
-version: "3.8"
+version: "3.1"
 
 x-shared-influxdb-variables: &shared-influxdb-variables
-    # InfluxDB will create the specified database and an admin account with the following credentials.
-    # The credentials are set to themselves here to print warnings if not provided.
+    # InfluxDB will create the specified database and an admin account with the specified credentials.
     # More info: https://github.com/influxdata/influxdata-docker/pull/102 
     INFLUXDB_DB: example_db
     INFLUXDB_ADMIN_USER: ${INFLUXDB_ADMIN_USER}
@@ -50,7 +49,7 @@ services:
 
     grafana:
         container_name: $GRAFANA_DOCKER_CONTAINER_NAME
-        image: grafana/grafana:7.3.4
+        image: grafana/grafana:7.3.5
         volumes:
             - type: volume
               source: grafana-data
@@ -106,7 +105,6 @@ services:
               source: traefik-data
               target: /letsencrypt
 
-            # Traefik requires access to the docker socket to get its dynamic configuration: https://docs.traefik.io/providers/docker/#docker-api-access
             - type: bind
               source: /var/run/docker.sock
               target: /var/run/docker.sock
@@ -128,8 +126,6 @@ services:
             - "--certificatesResolvers.lets-encrypt-ssl.acme.tlsChallenge=true"
             - "--certificatesResolvers.lets-encrypt-ssl.acme.storage=/letsencrypt/acme.json"
             - "--certificatesresolvers.lets-encrypt-ssl.acme.caServer=${CA_SERVER}"
-            # Let's Encrypt may use this email to contact you about expiring certificates and issues related to your account.
-            # More info: https://cert-manager.io/docs/configuration/acme/#creating-a-basic-acme-issuer
             - "--certificatesResolvers.lets-encrypt-ssl.acme.email=${LETS_ENCRYPT_EMAIL}"
 
 networks:
