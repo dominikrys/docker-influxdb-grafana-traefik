@@ -30,7 +30,7 @@ sudo docker-compose up -d
 
 - Grafana is accessible from the HTTP and HTTPS ports (`80` and `443` respectively), with redirection from HTTP to HTTPS using Traefik [routers](https://doc.traefik.io/traefik/routing/routers/).
 
-> Note that when accessing Grafana or InfluxDB that have been deployed locally, your browser and other apps will complain about invalid or self-signed TLS certificates. This is expected as localhost domains don't end with a valid top-level domain, and therefore Traefik won't attempt to request a certificate for them.
+> Note that when accessing Grafana or InfluxDB that have been deployed locally, your browser and other apps may show warnings about invalid or self-signed TLS certificates. This is expected as localhost domains don't end with a valid top-level domain, so Traefik won't attempt to request a certificate for them.
 
 Stop a running deployment:
 
