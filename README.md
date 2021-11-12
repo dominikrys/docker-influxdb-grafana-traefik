@@ -26,9 +26,9 @@ Deploy the application:
 sudo docker-compose up -d
 ```
 
-- You can then access Grafana at [monitoring.docker.localhost](http://monitoring.docker.localhost). InfluxDB will be listening on port `8086`.
+You can then access Grafana at [monitoring.docker.localhost](http://monitoring.docker.localhost). Use the credentials in [.env](.env) to log in to Grafana. InfluxDB will be listening on port `8086`.
 
-- Grafana is accessible from the HTTP and HTTPS ports (`80` and `443` respectively), with redirection from HTTP to HTTPS using Traefik [routers](https://doc.traefik.io/traefik/routing/routers/).
+Grafana is accessible from the HTTP and HTTPS ports (`80` and `443` respectively), with redirection from HTTP to HTTPS using Traefik [routers](https://doc.traefik.io/traefik/routing/routers/).
 
 > Note that when accessing Grafana or InfluxDB that have been deployed locally, your browser and other apps may show warnings about invalid or self-signed TLS certificates. This is expected as localhost domains don't end with a valid top-level domain, so Traefik won't attempt to request a certificate for them.
 
