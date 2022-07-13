@@ -10,7 +10,7 @@ x-shared-influxdb-variables: &shared-influxdb-variables
 services:
     influxdb:
         container_name: $INFLUXDB_DOCKER_CONTAINER_NAME
-        image: influxdb:2.1.1-alpine
+        image: influxdb:2.3.0
         volumes:
             - type: volume
               source: influxdb-data
@@ -49,7 +49,7 @@ services:
 
     grafana:
         container_name: $GRAFANA_DOCKER_CONTAINER_NAME
-        image: grafana/grafana:8.4.3
+        image: grafana/grafana:9.0.2
         volumes:
             - type: volume
               source: grafana-data
@@ -99,7 +99,7 @@ services:
 
     traefik:
         container_name: traefik
-        image: traefik:v2.6.1
+        image: traefik:v2.8.1
         volumes:
             - type: volume
               source: traefik-data
