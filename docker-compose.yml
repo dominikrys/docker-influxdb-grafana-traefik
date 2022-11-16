@@ -49,7 +49,7 @@ services:
 
     grafana:
         container_name: $GRAFANA_DOCKER_CONTAINER_NAME
-        image: grafana/grafana:9.2.4
+        image: grafana/grafana:9.2.5
         volumes:
             - type: volume
               source: grafana-data
