@@ -10,7 +10,7 @@ The individual components are:
 
 - **Grafana**: front-end for visualizing and querying data in InfluxDB.
 
-- **Traefik**: edge router/reverse proxy which will auto-generate and auto-renew TLS certificates using [Let's Encrypt](https://letsencrypt.org/). This means that all data sent to and from Grafana and InfluxDB will be encrypted.
+- **Traefik**: edge router/reverse proxy which will auto-generate and auto-renew TLS certificates using [Let's Encrypt](https://letsencrypt.org/). Traefik makes it so that data sent to and from Grafana and InfluxDB will be encrypted.
 
 ## Prerequisites
 
@@ -28,15 +28,13 @@ You can then access Grafana at [monitoring.docker.localhost](http://monitoring.d
 
 Grafana is accessible from the HTTP and HTTPS ports (`80` and `443` respectively), with redirection from HTTP to HTTPS handled using [Traefik routers](https://doc.traefik.io/traefik/routing/routers/).
 
-Note that when accessing Grafana or InfluxDB that have been deployed locally, your browser and other apps may show warnings about invalid or self-signed TLS certificates. This is expected as localhost domains don't end with a valid top-level domain, so Traefik won't attempt to request a certificate for them.
+> Note that when accessing Grafana or InfluxDB that have been deployed locally, your browser and other apps may show warnings about invalid or self-signed TLS certificates. This is expected as localhost domains don't end with a valid top-level domain, so Traefik won't attempt to request a certificate for them.
 
 ## Notes
 
 - Grafana will automatically be set up with InfluxDB as a data source (set up under `grafana/provisioning/datasources/influxdb.yml`).
 
 - InfluxDB will run shell scripts in `docker-entrypoint-initdb.d` on startup.
-
-- Most settings that should be tweaked are provided in [`.env`](./.env).
 
 - If you're testing locally, and an application which you want to use to send data to InfluxDB can't be set to ignore TLS certificates, change the `traefik.http.routers.influxdb-ssl.tls` label to `false` for the InfluxDB container inside `docker-compose.yml`.
 
@@ -60,33 +58,16 @@ Check container logs
 sudo docker container logs <CONTAINER NAME OR ID> [--follow]
 ```
 
-Check where data is stored (Docker volumes)
-
-```bash
-$ sudo docker volume ls
-
-DRIVER          VOLUME NAME
-local           monitoring_grafana-lib
-local           monitoring_influxdb-lib
-local           monitoring_traefik-data
-```
-
 Attach to a container and use bash within it (useful for InfluxDB database maintenance)
 
 ```bash
-sudo docker exec -it <CONTAINER NAME OR ID> /bin/bash
+sudo docker exec -it <CONTAINER NAME OR ID> bash
 ```
 
 Start up the the InfluxDB CLI when attached to the InfluxDB docker container
 
 ```bash
 influx --username <InfluxDB username> --password <InfluxDB password>
-```
-
-Check space used by Docker containers
-
-```bash
-sudo docker system df --verbose
 ```
 
 ## Links
