@@ -99,7 +99,7 @@ services:
 
     traefik:
         container_name: traefik
-        image: traefik:v2.9.10
+        image: traefik:v2.10.0
         volumes:
             - type: volume
               source: traefik-data
