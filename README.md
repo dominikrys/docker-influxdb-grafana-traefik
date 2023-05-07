@@ -2,7 +2,7 @@
 
 ![Diagram](docs/diagram.png)
 
-Docker Compose application for deploying [InfluxDB](https://www.influxdata.com/products/influxdb-overview/), [Grafana](https://grafana.com/) and [Traefik](https://containo.us/traefik/) in Docker.
+Docker Compose application for deploying [InfluxDB](https://www.influxdata.com/products/influxdb-overview/), [Grafana](https://grafana.com/), and [Traefik](https://containo.us/traefik/).
 
 The individual components are:
 
@@ -18,19 +18,25 @@ The individual components are:
 
 ## How to Run Locally
 
-Deploy the `docker-compose` application:
+Deploy the containers:
 
 ```bash
 docker-compose up
 ```
 
-You can then access Grafana at [monitoring.docker.localhost](http://monitoring.docker.localhost). Use the credentials in [.env](.env) to log in to Grafana. InfluxDB will be listening on port `8086`.
+Grafana will be accessible at [monitoring.docker.localhost](http://monitoring.docker.localhost) and InfluxDB at [monitoring.docker.localhost:8086](http://monitoring.docker.localhost:8086). Use the credentials in [.env](.env) to log in to Grafana. to write data to InfluxDB, refer to [the InfluxDB docs](https://docs.influxdata.com/influxdb/v2.7/write-data/).
 
-Grafana is accessible from the HTTP and HTTPS ports (`80` and `443` respectively), with redirection from HTTP to HTTPS handled using [Traefik routers](https://doc.traefik.io/traefik/routing/routers/).
+Stop running containers:
 
-> Note that when accessing Grafana or InfluxDB that have been deployed locally, your browser and other apps may show warnings about invalid or self-signed TLS certificates. This is expected as localhost domains don't end with a valid top-level domain, so Traefik won't attempt to request a certificate for them.
+```bash
+docker-compose down
+```
 
 ## Notes
+
+- When accessing Grafana or InfluxDB that have been deployed locally, your browser and other apps may show warnings about invalid or self-signed TLS certificates. This is expected as localhost domains don't end with a valid top-level domain, so Traefik won't attempt to request a certificate for them.
+
+- Grafana is accessible from the HTTP and HTTPS ports (`80` and `443` respectively), with redirection from HTTP to HTTPS handled using [Traefik routers](https://doc.traefik.io/traefik/routing/routers/).
 
 - Grafana will automatically be set up with InfluxDB as a data source (set up under `grafana/provisioning/datasources/influxdb.yml`).
 
@@ -48,7 +54,7 @@ Grafana is accessible from the HTTP and HTTPS ports (`80` and `443` respectively
 
 - Uncomment the appropriate `CA_SERVER` environment variable in [`.env`](./.env) to use [Let's Encrypt's](https://letsencrypt.org/) production API.
 
-    > There is a limit of 5 certificates per week from Let's Encrypt's production server as stated [here](https://letsencrypt.org/docs/rate-limits/). For more info on the Let's Encrypt staging environment and Traefik, check the note under this [Traefik docs page](https://docs.traefik.io/v2.0/user-guides/docker-compose/acme-tls/#setup).
+  > There is a limit of 5 certificates per week from Let's Encrypt's production server as stated [here](https://letsencrypt.org/docs/rate-limits/). For more info on the Let's Encrypt staging environment and Traefik, check the note under this [Traefik docs page](https://docs.traefik.io/v2.0/user-guides/docker-compose/acme-tls/#setup).
 
 ## Useful Commands
 
@@ -64,12 +70,20 @@ Attach to a container and use bash within it (useful for InfluxDB database maint
 sudo docker exec -it <CONTAINER NAME OR ID> bash
 ```
 
-Start up the the InfluxDB CLI when attached to the InfluxDB docker container
+Start up the InfluxDB CLI when attached to the InfluxDB docker container
 
 ```bash
 influx --username <InfluxDB username> --password <InfluxDB password>
 ```
 
-## Links
+Delete running containers and their volumes
 
-- [How to backup and restore InfluxDB database from Docker containers](https://www.influxdata.com/blog/backuprestore-of-influxdb-fromto-docker-containers/)
+```bash
+docker-compose down
+```
+
+Run containers in the background
+
+```bash
+docker-compose up -d
+```
