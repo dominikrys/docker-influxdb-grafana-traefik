@@ -1,6 +1,6 @@
 version: "3.1"
 
-x-shared-influxdb-variables: &shared-influxdb-variables
+x-influxdb-shared-vars: &influxdb-shared-vars
     # InfluxDB will create the specified database and an admin account with the specified credentials.
     # More info: https://github.com/influxdata/influxdata-docker/pull/102 
     INFLUXDB_DB: ${INFLUXDB_DB}
@@ -9,7 +9,7 @@ x-shared-influxdb-variables: &shared-influxdb-variables
 
 services:
     influxdb:
-        container_name: $INFLUXDB_DOCKER_CONTAINER_NAME
+        container_name: $INFLUXDB_CONTAINER
         image: influxdb:2.7.1
         volumes:
             - type: volume
@@ -35,21 +35,21 @@ services:
             INFLUXDB_HTTP_ENABLED: "true"
             INFLUXDB_HTTP_AUTH_ENABLED: "true"
 
-            << : *shared-influxdb-variables
+            << : *influxdb-shared-vars
         networks:
-            - monitoring
+            - metrics
         # restart: always
         labels:
             - "traefik.http.routers.influxdb-ssl.entryPoints=influxdb-port"
-            - "traefik.http.routers.influxdb-ssl.rule=host(`$MONITORING_DOMAIN`)"
+            - "traefik.http.routers.influxdb-ssl.rule=host(`$METRICS_DOMAIN`)"
             - "traefik.http.routers.influxdb-ssl.tls=true"
             - "traefik.http.routers.influxdb-ssl.tls.certResolver=lets-encrypt-ssl"
             - "traefik.http.routers.influxdb-ssl.service=influxdb-ssl"
             - "traefik.http.services.influxdb-ssl.loadBalancer.server.port=$INFLUXDB_PORT"
 
     grafana:
-        container_name: $GRAFANA_DOCKER_CONTAINER_NAME
-        image: grafana/grafana:9.5.1
+        container_name: grafana
+        image: grafana/grafana:10.1.1
         volumes:
             - type: volume
               source: grafana-data
@@ -67,8 +67,8 @@ services:
             GF_PATHS_PROVISIONING: /etc/grafana/provisioning
             
             GF_SERVER_HTTP_PORT: 3000
-            GF_SERVER_MONITORING_DOMAIN: ${MONITORING_DOMAIN}
-            GF_SERVER_ROOT_URL: https://${MONITORING_DOMAIN}
+            GF_SERVER_METRICS_DOMAIN: ${METRICS_DOMAIN}
+            GF_SERVER_ROOT_URL: https://${METRICS_DOMAIN}
 
             GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
             GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
@@ -76,22 +76,22 @@ services:
             GF_LOG_MODE: console
 
             # Variables for setting up the InfluxDB data source
-            << : *shared-influxdb-variables
+            << : *influxdb-shared-vars
         networks:
-            - monitoring
+            - metrics
         # restart: always
         depends_on:
-            - $INFLUXDB_DOCKER_CONTAINER_NAME
+            - $INFLUXDB_CONTAINER
         labels:
             # Router for redirecting HTTP traffic to the router receiving HTTPS traffic.
             - "traefik.http.routers.grafana.entryPoints=port80"
-            - "traefik.http.routers.grafana.rule=host(`$MONITORING_DOMAIN`)"
+            - "traefik.http.routers.grafana.rule=host(`$METRICS_DOMAIN`)"
             - "traefik.http.routers.grafana.middlewares=grafana-redirect"
             - "traefik.http.middlewares.grafana-redirect.redirectScheme.scheme=https"
             - "traefik.http.middlewares.grafana-redirect.redirectScheme.permanent=true"
 
             - "traefik.http.routers.grafana-ssl.entryPoints=port443"
-            - "traefik.http.routers.grafana-ssl.rule=host(`$MONITORING_DOMAIN`)"
+            - "traefik.http.routers.grafana-ssl.rule=host(`$METRICS_DOMAIN`)"
             - "traefik.http.routers.grafana-ssl.tls=true"
             - "traefik.http.routers.grafana-ssl.tls.certResolver=lets-encrypt-ssl"
             - "traefik.http.routers.grafana-ssl.service=grafana-ssl"
@@ -99,7 +99,7 @@ services:
 
     traefik:
         container_name: traefik
-        image: traefik:v2.10.1
+        image: traefik:v2.10.4
         volumes:
             - type: volume
               source: traefik-data
@@ -110,7 +110,7 @@ services:
               target: /var/run/docker.sock
               read_only: true
         networks:
-            - monitoring
+            - metrics
         # restart: always
         ports:
             - "80:80"
@@ -129,7 +129,7 @@ services:
             - "--certificatesResolvers.lets-encrypt-ssl.acme.email=${LETS_ENCRYPT_EMAIL}"
 
 networks:
-    monitoring:
+    metrics:
         driver: bridge
 
 volumes:

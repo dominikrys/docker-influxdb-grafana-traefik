@@ -1,4 +1,4 @@
-# Secure Monitoring Solution in Docker
+# Secure Metrics Solution in Docker
 
 ![Diagram](docs/diagram.png)
 
@@ -24,7 +24,7 @@ Deploy the containers:
 docker-compose up
 ```
 
-Grafana will be accessible at [monitoring.docker.localhost](http://monitoring.docker.localhost) and InfluxDB at [monitoring.docker.localhost:8086](http://monitoring.docker.localhost:8086). Use the credentials in [.env](.env) to log in to Grafana. to write data to InfluxDB, refer to [the InfluxDB docs](https://docs.influxdata.com/influxdb/v2.7/write-data/).
+Grafana will be accessible at [metrics.docker.localhost](http://metrics.docker.localhost) and InfluxDB at [metrics.docker.localhost:8086](http://metrics.docker.localhost:8086). Use the credentials in [.env](.env) to log in to Grafana. To write data to InfluxDB, refer to [the InfluxDB docs](https://docs.influxdata.com/influxdb/v2.7/write-data/).
 
 Stop running containers:
 
@@ -48,7 +48,7 @@ docker-compose down
 
 - Set a secure password for Grafana and InfluxDB.
 
-- Change the `MONITORING_DOMAIN` environment variable in [`.env`](./.env) to the domain where the application will be hosted.
+- Change the `METRICS_DOMAIN` environment variable in [`.env`](./.env) to the domain where the application will be hosted.
 
 - Set the `LETS_ENCRYPT_EMAIL` environment variable in [`.env`](./.env) to a valid email that you wish to receive emails about [certificates issues to](https://cert-manager.io/docs/configuration/acme/#creating-a-basic-acme-issuer).
 
