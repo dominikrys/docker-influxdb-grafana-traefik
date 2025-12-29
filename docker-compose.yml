@@ -8,7 +8,7 @@ x-influxdb-shared-vars: &influxdb-shared-vars
 services:
     influxdb:
         container_name: $INFLUXDB_CONTAINER
-        image: influxdb:2.7.10
+        image: influxdb:2.8.0
         volumes:
             - type: volume
               source: influxdb-data
@@ -47,7 +47,7 @@ services:
 
     grafana:
         container_name: grafana
-        image: grafana/grafana:11.3.0
+        image: grafana/grafana:12.3.0
         volumes:
             - type: volume
               source: grafana-data
@@ -97,7 +97,7 @@ services:
 
     traefik:
         container_name: traefik
-        image: traefik:v3.1.6
+        image: traefik:v3.6.5
         volumes:
             - type: volume
               source: traefik-data
